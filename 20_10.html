@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gửi em — 20/10</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Be+Vietnam+Pro:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{-webkit-text-size-adjust:100%;}
+body{background:#06091a;color:#fff;font-family:'Be Vietnam Pro',sans-serif;overflow-x:hidden;}
+#canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+#hearts-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;}
+.fheart{position:absolute;bottom:-60px;font-size:18px;opacity:0;animation:floatHeart linear infinite;}
+@keyframes floatHeart{
+  0%{transform:translateY(0) scale(.8) rotate(-10deg);opacity:0;}
+  10%{opacity:.6;}80%{opacity:.3;}
+  100%{transform:translateY(-110vh) scale(1.2) rotate(15deg);opacity:0;}
+}
+section{position:relative;z-index:1;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;}
+.tag{font-size:10px;font-weight:400;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:40px;text-align:center;line-height:1.8;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+
+/* S1 */
+#s1 .tag{opacity:0;animation:fadeUp 1s ease forwards;animation-delay:.6s;}
+#s1 h1{font-family:'Playfair Display',serif;font-size:clamp(52px,14vw,96px);font-weight:400;letter-spacing:.06em;text-align:center;opacity:0;animation:fadeUp 1.2s ease forwards;animation-delay:1s;background:linear-gradient(135deg,#fff 30%,rgba(200,180,255,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#s1 .sub{margin-top:18px;font-family:'Playfair Display',serif;font-size:clamp(15px,4vw,19px);font-style:italic;color:rgba(255,255,255,.42);text-align:center;opacity:0;animation:fadeUp 1.2s ease forwards;animation-delay:1.5s;}
+#s1 .heart-deco{margin-top:32px;font-size:22px;opacity:0;animation:fadeUp 1s ease forwards;animation-delay:2s;display:flex;gap:12px;}
+#s1 .heart-deco span{display:inline-block;animation:heartbeat 2.4s ease-in-out infinite;}
+#s1 .heart-deco span:nth-child(2){animation-delay:.4s;font-size:14px;opacity:.5;}
+#s1 .heart-deco span:nth-child(3){animation-delay:.8s;}
+@keyframes heartbeat{0%,100%{transform:scale(1);}14%{transform:scale(1.3);}28%{transform:scale(1);}42%{transform:scale(1.15);}56%{transform:scale(1);}}
+.scroll-hint{position:absolute;bottom:44px;display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,.22);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:0;animation:fadeUp 1s ease forwards;animation-delay:2.4s;}
+.scroll-line{width:1px;height:44px;background:linear-gradient(to bottom,rgba(255,255,255,.3),transparent);animation:scrollPulse 2s ease-in-out infinite;}
+@keyframes scrollPulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
+
+/* S2 – Bảo Bình */
+#sky-wrap{position:relative;width:min(560px,90vw);height:min(560px,90vw);margin:8px 0 0;}
+#lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible;}
+#lines line{stroke:rgba(200,170,255,.2);stroke-width:1;stroke-linecap:round;vector-effect:non-scaling-stroke;stroke-dasharray:100;stroke-dashoffset:100;}
+#sky-wrap.drawn #lines line{animation:drawLine 1.4s ease forwards;}
+@keyframes drawLine{to{stroke-dashoffset:0;}}
+.sky-name{position:absolute;right:0;bottom:-6px;font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:rgba(255,255,255,.18);letter-spacing:.15em;pointer-events:none;}
+.star-pin{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:2;width:34px;height:34px;display:flex;align-items:center;justify-content:center;}
+.star-core{width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,.45);transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative;z-index:2;}
+.star-pin.big .star-core{width:7px;height:7px;box-shadow:0 0 10px 4px rgba(255,255,255,.5);}
+.star-ring{position:absolute;width:16px;height:16px;border-radius:50%;border:1px solid rgba(255,255,255,0);transition:all .35s ease;}
+.star-pin:hover .star-core,.star-pin.active .star-core{width:10px;height:10px;box-shadow:0 0 18px 8px rgba(200,170,255,.75),0 0 4px 1px #fff;}
+.star-pin:hover .star-ring,.star-pin.active .star-ring{border-color:rgba(200,170,255,.45);transform:scale(2);}
+.star-pin.seen .star-core{background:#e6d9ff;}
+
+/* tooltip dùng chung — luôn nằm gọn trong màn hình */
+#tip{position:fixed;z-index:50;left:0;top:0;width:min(260px,calc(100vw - 32px));background:rgba(10,8,28,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(200,170,255,.28);border-radius:14px;padding:14px 18px;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease;}
+#tip.show{opacity:1;transform:translateY(0);}
+#tip .ti{font-size:16px;margin-bottom:6px;color:rgba(200,170,255,.9);}
+#tip .tt{font-size:13px;font-weight:300;color:rgba(255,255,255,.9);line-height:1.7;}
+#sky-hint{margin-top:30px;font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.25);text-transform:uppercase;text-align:center;line-height:1.8;animation:hintPulse 3s ease-in-out infinite;}
+@keyframes hintPulse{0%,100%{opacity:.4;}50%{opacity:.9;}}
+
+/* S3 */
+.counter-row{display:flex;gap:clamp(14px,5vw,64px);flex-wrap:wrap;justify-content:center;align-items:flex-end;}
+.cnt{text-align:center;}
+.cnt-num{font-family:'Playfair Display',serif;font-size:clamp(40px,11vw,80px);font-weight:400;line-height:1;color:#fff;font-variant-numeric:tabular-nums;}
+.cnt-unit{margin-top:10px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.3);}
+.cnt-sep{font-size:clamp(30px,6vw,56px);color:rgba(255,255,255,.1);padding-bottom:14px;}
+.cnt-notes{margin-top:52px;display:flex;flex-direction:column;gap:14px;align-items:center;}
+.cnt-note{font-size:clamp(12px,3.4vw,14px);color:rgba(255,255,255,.34);text-align:center;line-height:1.7;max-width:340px;}
+.cnt-note strong{color:rgba(255,255,255,.65);font-weight:400;}
+
+/* S4 */
+.tl{position:relative;max-width:540px;width:100%;padding:0 0 8px;}
+.tl::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.18) 12%,rgba(255,255,255,.18) 88%,transparent);transform:translateX(-50%);}
+.tl-row{display:grid;grid-template-columns:1fr 24px 1fr;align-items:start;gap:0 12px;margin-bottom:52px;}
+.tl-row:last-child{margin-bottom:0;}
+.tl-content{padding-top:2px;min-width:0;}
+.tl-row:nth-child(odd) .tl-content{grid-column:1;text-align:right;}
+.tl-row:nth-child(odd) .tl-dot{grid-column:2;}
+.tl-row:nth-child(odd) .tl-empty{grid-column:3;}
+.tl-row:nth-child(even) .tl-empty{grid-column:1;}
+.tl-row:nth-child(even) .tl-dot{grid-column:2;}
+.tl-row:nth-child(even) .tl-content{grid-column:3;text-align:left;}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 0 8px 3px rgba(200,170,255,.3);margin-top:4px;justify-self:center;}
+.tl-dot.special{background:rgba(200,170,255,.9);box-shadow:0 0 14px 6px rgba(200,170,255,.5);}
+.tl-date{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px;}
+.tl-text{font-size:clamp(12.5px,3.4vw,15px);font-weight:300;color:rgba(255,255,255,.75);line-height:1.75;}
+.tl-text em{font-family:'Playfair Display',serif;font-style:italic;color:rgba(255,255,255,.92);}
+
+/* S5 */
+.poem-block{max-width:460px;width:100%;}
+.poem-stanza{margin-bottom:44px;}
+.poem-stanza:last-child{margin-bottom:0;}
+.poem-line{font-family:'Playfair Display',serif;font-size:clamp(16px,4.6vw,22px);font-weight:400;line-height:2;color:rgba(255,255,255,0);transition:color .9s ease,transform .9s ease;transform:translateY(10px);}
+.poem-line.vis{color:rgba(255,255,255,.85);transform:translateY(0);}
+.poem-line.vis.italic-line{font-style:italic;color:rgba(255,255,255,.58);}
+
+/* S6 */
+#s6{background:radial-gradient(ellipse at 50% 60%,rgba(120,80,220,.1) 0%,transparent 65%);}
+.ending-quote{font-family:'Playfair Display',serif;font-size:clamp(19px,5.2vw,30px);font-weight:400;line-height:1.75;text-align:center;max-width:500px;color:rgba(255,255,255,.9);margin-bottom:36px;}
+.ending-hearts{display:flex;gap:14px;justify-content:center;font-size:20px;margin-bottom:40px;}
+.ending-hearts span{animation:heartbeat 2.2s ease-in-out infinite;}
+.ending-hearts span:nth-child(2){animation-delay:.5s;font-size:13px;opacity:.5;}
+.ending-hearts span:nth-child(3){animation-delay:1s;}
+.ending-tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:center;line-height:1.9;}
+.ending-from{margin-top:52px;font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.25);text-align:center;}
+
+.click-heart{position:fixed;pointer-events:none;z-index:999;font-size:20px;animation:clickHeartAnim .9s ease forwards;}
+@keyframes clickHeartAnim{0%{opacity:1;transform:translate(-50%,-50%) scale(.6);}40%{opacity:1;transform:translate(-50%,-90%) scale(1.2);}100%{opacity:0;transform:translate(-50%,-160%) scale(.8);}}
+
+@media (max-width:420px){
+  section{padding:70px 16px;}
+  .tl-row{gap:0 8px;}
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="hearts-layer"></div>
+<div id="tip"><div class="ti">✦</div><div class="tt"></div></div>
+
+<section id="s1">
+  <p class="tag">Gửi bé iu — nhân dịp 20 tháng 10</p>
+  <h1>Trà My</h1>
+  <p class="sub">Người mà anh muốn kể về ạaaa ✦</p>
+  <div class="heart-deco"><span>♡</span><span>♡</span><span>♡</span></div>
+  <div class="scroll-hint"><span>cuộn xuống</span><div class="scroll-line"></div></div>
+</section>
+
+<section id="s2">
+  <p class="tag">Chòm sao Bảo Bình<br>Mỗi ngôi sao là một lý do anh thương em ạ</p>
+  <div id="sky-wrap">
+    <svg id="lines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+    <span class="sky-name">Aquarius ✦</span>
+  </div>
+  <p id="sky-hint">Chạm hoặc di chuột vào từng ngôi sao</p>
+</section>
+
+<section id="s3">
+  <p class="tag">Hành trình của chúng mình</p>
+  <div class="counter-row">
+    <div class="cnt"><div class="cnt-num" id="c-days">—</div><div class="cnt-unit">ngày yêu nhau</div></div>
+    <div class="cnt-sep">·</div>
+    <div class="cnt"><div class="cnt-num" id="c-hours">—</div><div class="cnt-unit">giờ</div></div>
+    <div class="cnt-sep">·</div>
+    <div class="cnt"><div class="cnt-num" id="c-mins">—</div><div class="cnt-unit">phút</div></div>
+  </div>
+  <div class="cnt-notes">
+    <p class="cnt-note">Kể từ <strong>13 tháng 6 năm 2026</strong> — ngày anh can đảm nhất trong đời.</p>
+    <p class="cnt-note">Và trước đó, từ <strong>25 tháng 12 năm 2025</strong> — món quà Giáng Sinh anh không ngờ tới đó.</p>
+  </div>
+</section>
+
+<section id="s4">
+  <p class="tag" style="margin-bottom:52px;">Câu chuyện của chúng mình</p>
+  <div class="tl">
+    <div class="tl-row">
+      <div class="tl-content"><div class="tl-date">25 / 12 / 2025</div><div class="tl-text">Ngày Giáng Sinh — chúng mình bắt đầu quen nhau. Lúc đó anh chưa biết rằng đây sẽ là khởi đầu của điều <em>đặc biệt nhất</em> anh từng có.</div></div>
+      <div class="tl-dot"></div><div class="tl-empty"></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-empty"></div><div class="tl-dot"></div>
+      <div class="tl-content"><div class="tl-date">Đầu năm 2026</div><div class="tl-text">Khoảng thời gian cả hai đều <em>biết</em>, nhưng chưa ai nói ra. Những tin nhắn dài không có điểm kết, những buổi trò chuyện quên mất giờ — anh nghĩ em cũng cảm nhận được.</div></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-content"><div class="tl-date">13 / 06 / 2026</div><div class="tl-text">Anh tỏ tình. Lần đầu tiên trong đời anh thấy tim đập nhanh đến vậy — và từ hôm đó, chúng mình chính thức là <em>của nhau ạ</em>.</div></div>
+      <div class="tl-dot"></div><div class="tl-empty"></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-empty"></div><div class="tl-dot special"></div>
+      <div class="tl-content"><div class="tl-date">20 / 10 / 2026</div><div class="tl-text">Hôm nay. Dù chưa ở cạnh nhau mỗi ngày, anh vẫn muốn em biết rằng mỗi ngày có em đều là ngày anh <em>trân trọng hơn ngày hôm trước đó bae</em>.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="s5">
+  <p class="tag" style="margin-bottom:52px;">Nếu như...</p>
+  <div class="poem-block" id="poem-block">
+    <div class="poem-stanza">
+      <p class="poem-line">Nếu anh là một mùa trong năm,</p>
+      <p class="poem-line">anh sẽ chọn là mùa em thích nhất —</p>
+      <p class="poem-line italic-line">để luôn được ở gần em hơn một chút.</p>
+    </div>
+    <div class="poem-stanza">
+      <p class="poem-line">Nếu anh là một bài nhạc,</p>
+      <p class="poem-line">anh muốn là bài em nghe mỗi khi cần bình yên —</p>
+      <p class="poem-line italic-line">quen thuộc, nhẹ nhàng, và không bao giờ làm em mệt.</p>
+    </div>
+    <div class="poem-stanza">
+      <p class="poem-line">Nhưng anh chỉ là anh —</p>
+      <p class="poem-line">không hoàn hảo, đôi lúc vụng về,</p>
+      <p class="poem-line italic-line">và tất cả những gì anh có, anh muốn dành cho em.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s6">
+  <div class="ending-quote">
+    Anh nói không hay, nhưng anh biết chắc một điều:<br> gặp được em là may mắn lớn nhất của anh đó.<br>
+    <span style="font-style:italic;font-size:90%;color:rgba(255,255,255,.5);">Cảm ơn em đã xuất hiện.</span>
+  </div>
+  <div class="ending-hearts"><span>♡</span><span>♡</span><span>♡</span></div>
+  <p class="ending-tag">Chúc em ngày 20 tháng 10 thật vui vẻ và hạnh phúc nè ✦</p>
+  <p class="ending-from">— Từ anh, người luôn ở bên và đồng hành cùng em ạ.</p>
+</section>
+
+<script>
+/* ===== STARFIELD ===== */
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+let W,H,stars=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize();addEventListener('resize',resize);
+for(let i=0;i<200;i++)stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.3+.2,a:Math.random()*.5+.2,sp:Math.random()*.006+.002,o:Math.random()*Math.PI*2});
+function drawBg(t){
+  ctx.clearRect(0,0,W,H);
+  stars.forEach(s=>{const a=s.a*(.65+.35*Math.sin(t*s.sp+s.o));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+a+')';ctx.fill();});
+  requestAnimationFrame(drawBg);
+}
+requestAnimationFrame(drawBg);
+
+/* ===== FLOATING HEARTS ===== */
+const hl=document.getElementById('hearts-layer');
+function spawnHeart(){
+  const h=document.createElement('div');h.className='fheart';
+  h.textContent=Math.random()>.5?'♡':'❤';
+  h.style.left=Math.random()*100+'vw';
+  h.style.fontSize=(Math.random()*14+10)+'px';
+  const dur=Math.random()*12+10;
+  h.style.animationDuration=dur+'s';h.style.animationDelay=(Math.random()*6)+'s';
+  h.style.color='hsl('+(280+Math.random()*60)+',70%,'+(70+Math.random()*20)+'%)';
+  hl.appendChild(h);setTimeout(()=>h.remove(),(dur+7)*1000);
+}
+for(let i=0;i<18;i++)spawnHeart();
+setInterval(spawnHeart,3200);
+
+/* ===== CLICK HEARTS ===== */
+document.addEventListener('click',e=>{
+  for(let i=0;i<3;i++){
+    const h=document.createElement('div');h.className='click-heart';h.textContent='♡';
+    h.style.left=e.clientX+'px';h.style.top=e.clientY+'px';
+    h.style.animationDelay=(i*.12)+'s';
+    h.style.color='hsl('+(300+Math.random()*60)+',80%,'+(75+Math.random()*15)+'%)';
+    h.style.fontSize=(16+Math.random()*10)+'px';
+    document.body.appendChild(h);setTimeout(()=>h.remove(),1000);
+  }
+});
+
+/* ===== CHÒM SAO BẢO BÌNH: 14 ngôi sao ===== */
+const starData=[
+ /*1*/{x:9, y:30,pos:'below',big:1,text:'Em chăm chỉ lắm đó em biết hong — anh không biết bao lần ngồi nhìn em cố gắng và tự nhủ phải cố lên theo em.'},
+ /*2*/{x:28,y:18,pos:'below',big:1,text:'Em xinh đẹp theo một cách rất tự nhiên í — không cần cố, chỉ cần là em thôi là đủ.'},
+ /*3*/{x:41,y:36,pos:'left', text:'Em dễ thương theo cái cách mà chính em không hay biết — đó mới là điều làm anh thích nhất ạa.'},
+ /*4*/{x:52,y:24,pos:'above',text:'Khi bên cạnh em anh được làm chính mình á .Có những điều anh chưa từng nói với ai, vậy mà với em thì anh muốn kể hết.'},
+ /*5*/{x:61,y:39,pos:'right',big:1,text:'Nụ cười của em là thứ anh nhớ nhất sau mỗi lần mình gặp nhau á :)))) đáng iu cực luôn í.'},
+ /*6*/{x:52,y:50,pos:'left', text:'Bên em, những buổi tối bình thường nhất cũng trở thành kỷ niệm anh không muốn quên.'},
+ /*7*/{x:70,y:27,pos:'above',text:'Em làm anh muốn trở nên tốt hơn mỗi ngày — không phải vì áp lực, mà vì anh muốn xứng với em cũng như đồng hành cùng em ạa.'},
+ /*8*/{x:71,y:51,pos:'left', text:'Giọng nói của em — nghe một lần là anh muốn nghe thêm nhiều lần nữa á, thích được nghe em kể chuyện lắm.'},
+ /*9*/{x:80,y:61,pos:'left', text:'Em quan tâm anh bằng những điều rất nhỏ — nhỏ đến mức em không nhận ra, nhưng anh luôn nhận ra.'},
+ /*10*/{x:71,y:73,pos:'left',text:'Mỗi lần thấy tên em hiện lên trên màn hình, ngày của anh lại sáng hơn một chút đó nhee.'},
+ /*11*/{x:82,y:82,pos:'left',text:'Em kiên nhẫn với anh, cả những lúc anh vụng về, cả những lúc anh chẳng biết nói gì ngoài "anh nhớ em".'},
+ /*12*/{x:90,y:92,pos:'above',text:'Cách em kể chuyện, dù là chuyện nhỏ xíu, anh cũng muốn nghe đến cuối cùng.'},
+ /*13*/{x:36,y:57,pos:'right',text:'Em làm anh tin rằng những điều tốt đẹp thật sự có tồn tại.'},
+ /*14*/{x:23,y:72,pos:'right',text:'Và hơn hết, anh thích cảm giác bình yên khi ở bên em — như về nhà vậy á yêu.'},
+];
+const links=[[1,2],[2,3],[3,4],[4,5],[5,6],[4,7],[7,5],[5,8],[8,9],[9,10],[10,11],[11,12],[3,13],[13,14]];
+
+const wrap=document.getElementById('sky-wrap'),svg=document.getElementById('lines');
+links.forEach((p,i)=>{
+  const A=starData[p[0]-1],B=starData[p[1]-1];
+  const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+  l.setAttribute('x1',A.x);l.setAttribute('y1',A.y);l.setAttribute('x2',B.x);l.setAttribute('y2',B.y);
+  l.setAttribute('pathLength','100');
+  l.style.animationDelay=(i*.12)+'s';
+  svg.appendChild(l);
+});
+
+/* tooltip dùng chung: tự căn trong màn hình, không bao giờ bị tràn */
+const tip=document.getElementById('tip'),tipText=tip.querySelector('.tt');
+let activePin=null;
+function showTip(pin,s){
+  tipText.textContent=s.text;
+  const r=pin.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight,m=16;
+  let left=r.left+r.width/2-tw/2;
+  left=Math.max(m,Math.min(left,innerWidth-tw-m));
+  let top=r.top-th-10;
+  if(top<m)top=r.bottom+10;
+  if(top+th>innerHeight-m)top=Math.max(m,innerHeight-th-m);
+  tip.style.left=left+'px';tip.style.top=top+'px';
+  tip.classList.add('show');
+  pin.classList.add('seen');
+}
+function hideTip(){
+  tip.classList.remove('show');
+  if(activePin){activePin.classList.remove('active');activePin=null;}
+}
+
+starData.forEach(s=>{
+  const pin=document.createElement('div');
+  pin.className='star-pin'+(s.big?' big':'');
+  pin.style.left=s.x+'%';pin.style.top=s.y+'%';
+  pin.innerHTML='<div class="star-ring"></div><div class="star-core"></div>';
+  pin.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches){hideTip();pin.classList.add('active');activePin=pin;showTip(pin,s);}});
+  pin.addEventListener('mouseleave',()=>{if(matchMedia('(hover:hover)').matches)hideTip();});
+  pin.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(activePin===pin){hideTip();return;}
+    hideTip();pin.classList.add('active');activePin=pin;showTip(pin,s);
+  });
+  wrap.appendChild(pin);
+});
+document.addEventListener('click',hideTip);
+addEventListener('scroll',hideTip,{passive:true});
+addEventListener('resize',hideTip);
+
+new IntersectionObserver((en,o)=>{en.forEach(e=>{if(e.isIntersecting){wrap.classList.add('drawn');o.disconnect();}});},{threshold:.3}).observe(wrap);
+
+/* ===== COUNTER ===== */
+const start=new Date('2026-06-13T00:00:00');
+function tick(){
+  const d=new Date()-start;if(d<0)return;
+  document.getElementById('c-days').textContent=Math.floor(d/86400000).toLocaleString('vi-VN');
+  document.getElementById('c-hours').textContent=String(Math.floor(d/3600000)%24).padStart(2,'0');
+  document.getElementById('c-mins').textContent=String(Math.floor(d/60000)%60).padStart(2,'0');
+}
+tick();setInterval(tick,30000);
+
+/* ===== POEM REVEAL ===== */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.poem-line').forEach((l,i)=>setTimeout(()=>l.classList.add('vis'),i*320));
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:.25});
+obs.observe(document.getElementById('poem-block'));
+</script>
+</body>
+</html>
