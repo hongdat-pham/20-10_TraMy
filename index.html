@@ -110,12 +110,83 @@ section{position:relative;z-index:1;min-height:100vh;min-height:100svh;display:f
   section{padding:70px 16px;}
   .tl-row{gap:0 8px;}
 }
+
+/* ===== NÚT NHẠC ===== */
+#music-btn{
+  position:fixed;
+  top:calc(16px + env(safe-area-inset-top,0px));
+  right:calc(16px + env(safe-area-inset-right,0px));
+  z-index:100;
+  width:54px;height:54px;border-radius:50%;padding:0;
+  border:1px solid rgba(200,170,255,.35);
+  background:rgba(10,8,28,.55);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 0 14px rgba(160,120,255,.2);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:box-shadow .4s ease,border-color .4s ease,transform .25s ease;
+}
+#music-btn:active{transform:scale(.92);}
+#music-btn::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  border:1px solid rgba(200,170,255,.5);
+  opacity:0;pointer-events:none;
+}
+#music-btn.playing{
+  border-color:rgba(200,170,255,.6);
+  box-shadow:0 0 22px rgba(190,150,255,.5);
+}
+#music-btn.playing::after{animation:musicPulse 2.4s ease-out infinite;}
+@keyframes musicPulse{
+  0%{transform:scale(1);opacity:.6;}
+  100%{transform:scale(1.7);opacity:0;}
+}
+.disc{
+  position:relative;width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:
+    conic-gradient(from 0deg,rgba(255,255,255,.14),transparent 25%,rgba(255,255,255,.1) 50%,transparent 75%,rgba(255,255,255,.14)),
+    repeating-radial-gradient(circle at 50% 50%,#1a1433 0 2px,#2a2050 2px 3px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  animation:musicSpin 5s linear infinite;
+  animation-play-state:paused;
+}
+#music-btn.playing .disc{animation-play-state:running;}
+@keyframes musicSpin{to{transform:rotate(360deg);}}
+.disc .label{
+  width:18px;height:18px;border-radius:50%;
+  background:linear-gradient(135deg,#c8aaff,#ff9ed2);
+  color:#1a1433;font-size:9px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 6px rgba(255,160,220,.5);
+}
+#music-hint{
+  position:fixed;
+  top:calc(16px + env(safe-area-inset-top,0px));
+  right:calc(78px + env(safe-area-inset-right,0px));
+  height:54px;display:flex;align-items:center;
+  z-index:100;pointer-events:none;
+  font-size:11px;letter-spacing:.08em;color:rgba(255,255,255,.7);
+  background:rgba(10,8,28,.6);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid rgba(200,170,255,.22);
+  border-radius:27px;padding:0 16px;
+  opacity:0;transform:translateX(8px);
+  transition:opacity .4s ease,transform .4s ease;
+}
+#music-hint.show{opacity:1;transform:translateX(0);animation:hintPulse 3s ease-in-out infinite;}
 </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <div id="hearts-layer"></div>
 <div id="tip"><div class="ti">✦</div><div class="tt"></div></div>
+
+<audio id="bgm" src="music.mp3" loop preload="auto" playsinline></audio>
+<button id="music-btn" aria-label="Bật hoặc tắt nhạc" title="Bật/tắt nhạc">
+  <span class="disc"><span class="label" id="music-icon">▶</span></span>
+</button>
+<div id="music-hint">Chạm để bật nhạc ♪</div>
 
 <section id="s1">
   <p class="tag">Gửi bé iu — nhân dịp 20 tháng 10</p>
@@ -332,6 +403,63 @@ const obs=new IntersectionObserver(entries=>{
   });
 },{threshold:.25});
 obs.observe(document.getElementById('poem-block'));
+
+/* ===== NHẠC NỀN ===== */
+const bgm=document.getElementById('bgm'),
+      mBtn=document.getElementById('music-btn'),
+      mIcon=document.getElementById('music-icon'),
+      mHint=document.getElementById('music-hint');
+bgm.volume=.6;
+let userPaused=false,wasPlaying=false;
+const gestureEvents=['pointerdown','touchend','click','keydown'];
+
+function updateUI(){
+  const on=!bgm.paused;
+  mBtn.classList.toggle('playing',on);
+  mIcon.textContent=on?'♪':'▶';
+  if(on)mHint.classList.remove('show');
+}
+bgm.addEventListener('play',updateUI);
+bgm.addEventListener('pause',updateUI);
+bgm.addEventListener('error',()=>mHint.classList.remove('show'));
+
+function removeGestureListeners(){
+  gestureEvents.forEach(ev=>document.removeEventListener(ev,onFirstGesture));
+}
+/* trình duyệt chặn tự phát -> chạy ở lần chạm đầu tiên */
+function onFirstGesture(e){
+  if(userPaused||mBtn.contains(e.target))return;
+  bgm.play().then(removeGestureListeners).catch(()=>{});
+}
+gestureEvents.forEach(ev=>document.addEventListener(ev,onFirstGesture,{passive:true}));
+
+/* thử tự phát ngay khi mở trang */
+const autoTry=bgm.play();
+if(autoTry&&autoTry.then){
+  autoTry.then(removeGestureListeners).catch(()=>mHint.classList.add('show'));
+}
+
+/* bấm nút để bật/tắt */
+mBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  if(bgm.paused){
+    userPaused=false;
+    bgm.play().then(removeGestureListeners).catch(()=>{});
+  }else{
+    userPaused=true;
+    bgm.pause();
+  }
+});
+
+/* chuyển tab hoặc khóa màn hình thì tạm dừng, quay lại thì chạy tiếp */
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    wasPlaying=!bgm.paused;
+    bgm.pause();
+  }else if(wasPlaying&&!userPaused){
+    bgm.play().catch(()=>{});
+  }
+});
 </script>
 </body>
 </html>
